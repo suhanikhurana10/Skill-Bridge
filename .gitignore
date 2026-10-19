@@ -1,0 +1,24 @@
+# Build output
+target/
+*.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Secrets - never commit these
+.env
+.env.*
+application-local.yml
+application-local.properties

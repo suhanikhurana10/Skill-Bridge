@@ -1,0 +1,52 @@
+server:
+  address: ${HOST:127.0.0.1}
+  port: ${PORT:8000}
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+spring:
+  application:
+    name: kaayakasetu
+  jackson:
+    # The frontend and the API contract use snake_case: daily_rate, created_at, access_token ...
+    # Java fields stay camelCase; Jackson converts at the JSON boundary.
+    property-naming-strategy: SNAKE_CASE
+  datasource:
+    # MySQL. Override with environment variables (IntelliJ: Run > Edit Configurations > Environment variables).
+    # createDatabaseIfNotExist=true makes MySQL create the schema on first start if it is missing.
+    url: ${DB_URL:jdbc:mysql://localhost:3306/kaayakasetu?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+    hikari:
+      maximum-pool-size: 10
+
+app:
+  # Inserts two demo accounts on an EMPTY users table (see README). Set to false in production.
+  seed-demo-users: ${SEED_DEMO_USERS:true}
+  security:
+    # HMAC key used to sign JWTs. MUST be overridden in production (at least 32 characters).
+    jwt-secret: ${JWT_SECRET:dev-only-secret-change-me-kaayakasetu-0123456789}
+    jwt-expiry-minutes: ${JWT_EXPIRY_MINUTES:120}
+
+# SMS gateway: "mock" (default, prints to the log, needs no keys) or "twilio" (real SMS).
+sms:
+  provider: ${SMS_PROVIDER:mock}
+  default-country-code: "${SMS_DEFAULT_COUNTRY_CODE:+91}"
+  twilio:
+    account-sid: ${TWILIO_ACCOUNT_SID:}
+    auth-token: ${TWILIO_AUTH_TOKEN:}
+    from-number: ${TWILIO_FROM_NUMBER:}
+
+springdoc:
+  api-docs:
+    path: /openapi.json
+  swagger-ui:
+    path: /docs
+    tags-sorter: alpha
+
+logging:
+  level:
+    root: INFO
+    com.kaayakasetu: INFO

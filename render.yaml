@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: kaayakasetu-platform-java
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      # Render has no managed MySQL: point these at any MySQL 8 server (e.g. Aiven, PlanetScale, your own)
+      - key: DB_URL
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SEED_DEMO_USERS
+        value: "false"

@@ -1,0 +1,53 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: kaayakasetu-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: kaayakasetu
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-changeme}
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    volumes:
+      - kaayakasetu_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  kaayakasetu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: kaayakasetu-platform-java:latest
+    container_name: kaayakasetu-platform-java
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DB_URL=jdbc:mysql://mysql:3306/kaayakasetu?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+      - DB_USERNAME=root
+      - DB_PASSWORD=${MYSQL_ROOT_PASSWORD:-changeme}
+      # CHANGE THIS for anything that is not a local demo (at least 32 characters)
+      - JWT_SECRET=${JWT_SECRET:-dev-only-secret-change-me-kaayakasetu-0123456789}
+      - SEED_DEMO_USERS=${SEED_DEMO_USERS:-true}
+      - SMS_PROVIDER=${SMS_PROVIDER:-mock}
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID:-}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN:-}
+      - TWILIO_FROM_NUMBER=${TWILIO_FROM_NUMBER:-}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8000/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  kaayakasetu_mysql_data:
+    name: kaayakasetu_mysql_data

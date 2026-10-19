@@ -1,0 +1,14 @@
+# Used by the Spring tests (@ActiveProfiles("test")): an in-memory H2 database in MySQL mode,
+# so the tests need no MySQL server and never touch your real data.
+spring:
+  datasource:
+    url: jdbc:h2:mem:kaayakasetu_it;MODE=MySQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+app:
+  seed-demo-users: true
+  security:
+    jwt-secret: test-only-secret-test-only-secret-0123456789
+sms:
+  provider: mock

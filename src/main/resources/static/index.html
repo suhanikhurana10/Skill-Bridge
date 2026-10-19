@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KaayakaSetu (ಕಾಯಕಸೇತು / श्रमसेतु) - Blue Collar Work Platform</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header>
+    <div class="header-container">
+      <div class="logo-area">
+        <h1>
+          🛠️ KaayakaSetu 
+          <span class="logo-badge" id="lbl-badge">Microservices</span>
+        </h1>
+        <div class="logo-subtitle" id="lbl-subtitle">
+          ಕಾಯಕಸೇತು • श्रमसेतु — Connecting Workers & Employers with Smart Matching, Fair Wage & Regional USSD/IVR
+        </div>
+      </div>
+      <div class="header-controls">
+        <select id="language-switcher" class="lang-select" onchange="changeLanguage(this.value)">
+          <option value="en">English</option>
+          <option value="kn">ಕನ್ನಡ (Kannada)</option>
+          <option value="hi">हिन्दी (Hindi)</option>
+        </select>
+        <div id="auth-bar" class="auth-bar"></div>
+        <a href="/docs" target="_blank" class="btn btn-secondary" style="font-size:0.8rem; padding: 0.4rem 0.8rem;">
+          📖 API Docs (Swagger)
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Live Market Insights Ticker -->
+  <section class="stats-ticker">
+    <div class="ticker-inner">
+      <div class="ticker-item">
+        <span>👷</span> <span id="lbl-stat-workers">Registered Workers:</span>
+        <strong id="stat-total-workers">...</strong>
+      </div>
+      <div class="ticker-item">
+        <span>💼</span> <span id="lbl-stat-jobs">Open Jobs:</span>
+        <strong id="stat-open-jobs">...</strong>
+      </div>
+      <div class="ticker-item">
+        <span>🤝</span> <span id="lbl-stat-contacts">Active Inquiries:</span>
+        <strong id="stat-total-contacts">...</strong>
+      </div>
+      <div class="ticker-item">
+        <span>📍</span> <span id="lbl-stat-location">Supported Hubs:</span>
+        <strong id="stat-active-cities">15+ Cities</strong>
+      </div>
+    </div>
+  </section>
+
+  <!-- Navigation Tabs -->
+  <nav class="nav-tabs-container">
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('tab-jobs', this)">
+        📋 <span id="nav-jobs">Job Feed</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('tab-workers', this)">
+        👷 <span id="nav-workers">Workers Feed</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('tab-matching', this)">
+        🎯 <span id="nav-matching">Smart Matcher</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('tab-wage', this)">
+        ⚖️ <span id="nav-wage">Fair Wage Predictor</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('tab-post-job', this)">
+        ➕ <span id="nav-post-job">Post Work (Employer)</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('tab-register-worker', this)">
+        👤 <span id="nav-register-worker">Worker Registration</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('tab-phone-simulator', this)" style="background: #e0f2fe; color: #0369a1; border-radius: 8px;">
+        📱 <span id="nav-phone">Feature Phone (USSD & IVR)</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="content-area">
+
+    <!-- 1. JOB FEED TAB -->
+    <div id="tab-jobs" class="tab-pane active">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
+        <div>
+          <h2 id="job-feed-title" style="font-size:1.4rem;">Live Job Opportunities for Workers</h2>
+          <p id="job-feed-subtitle" style="color:var(--text-muted); font-size:0.9rem;">Browse verified work posted by households, shops, and contractors nearby.</p>
+        </div>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <select id="filter-job-trade" class="form-control" style="width:auto;" onchange="loadJobFeed()">
+            <option value="">All Trades (ಎಲ್ಲ ವೃತ್ತಿಗಳು)</option>
+            <option value="Electrician">Electrician (ಎಲೆಕ್ಟ್ರಿಷಿಯನ್)</option>
+            <option value="Plumber">Plumber (ಪ್ಲಂಬರ್)</option>
+            <option value="Mason">Mason (ಮೇಸ್ತ್ರಿ)</option>
+            <option value="Carpenter">Carpenter (ಬಡಗಿ)</option>
+            <option value="Painter">Painter (ಪೇಂಟರ್)</option>
+            <option value="Helper">Helper (ಕೂಲಿ ಕಾರ್ಮಿಕ)</option>
+            <option value="Welder">Welder (ವೆಲ್ಡರ್)</option>
+          </select>
+          <select id="filter-job-city" class="form-control" style="width:auto;" onchange="loadJobFeed()">
+            <option value="">All Cities (ಎಲ್ಲ ನಗರಗಳು)</option>
+            <option value="Bengaluru">Bengaluru</option>
+            <option value="Mysuru">Mysuru</option>
+            <option value="Hubballi">Hubballi</option>
+            <option value="Delhi">Delhi</option>
+            <option value="Lucknow">Lucknow</option>
+            <option value="Patna">Patna</option>
+          </select>
+          <button class="btn btn-secondary" onclick="loadJobFeed()">🔄 Refresh</button>
+        </div>
+      </div>
+      <div id="job-feed-grid" class="card-grid">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- 2. WORKERS FEED TAB -->
+    <div id="tab-workers" class="tab-pane">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
+        <div>
+          <h2 id="worker-feed-title" style="font-size:1.4rem;">Available Workers Feed for Employers</h2>
+          <p id="worker-feed-subtitle" style="color:var(--text-muted); font-size:0.9rem;">Hire skilled tradespeople with verified ratings, rates, and locations.</p>
+        </div>
+        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+          <select id="filter-worker-trade" class="form-control" style="width:auto;" onchange="loadWorkerFeed()">
+            <option value="">All Trades</option>
+            <option value="Electrician">Electrician</option>
+            <option value="Plumber">Plumber</option>
+            <option value="Mason">Mason</option>
+            <option value="Carpenter">Carpenter</option>
+            <option value="Painter">Painter</option>
+            <option value="Helper">Helper</option>
+            <option value="Welder">Welder</option>
+          </select>
+          <select id="filter-worker-city" class="form-control" style="width:auto;" onchange="loadWorkerFeed()">
+            <option value="">All Cities</option>
+            <option value="Bengaluru">Bengaluru</option>
+            <option value="Mysuru">Mysuru</option>
+            <option value="Hubballi">Hubballi</option>
+            <option value="Delhi">Delhi</option>
+            <option value="Lucknow">Lucknow</option>
+            <option value="Patna">Patna</option>
+          </select>
+          <button class="btn btn-secondary" onclick="loadWorkerFeed()">🔄 Refresh</button>
+        </div>
+      </div>
+      <div id="worker-feed-grid" class="card-grid">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- 3. SMART MATCHER TAB -->
+    <div id="tab-matching" class="tab-pane">
+      <div class="form-card" style="max-width:900px; margin-bottom: 1.5rem;">
+        <h2 style="font-size:1.3rem; margin-bottom:0.5rem;">🎯 Smart Multi-Factor Job Matcher</h2>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1rem;">
+          Our AI/heuristic matching service calculates compatibility scores using trade overlap (40%), geodesic travel distance (30%), wage budget fit (20%), and worker reliability/rating (10%).
+        </p>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Mode:</label>
+            <select id="match-mode" class="form-control" onchange="toggleMatchMode()">
+              <option value="worker_to_jobs">Find Best Jobs for a Worker (ಉದ್ಯೋಗ ಹುಡುಕಿ)</option>
+              <option value="job_to_workers">Find Best Workers for a Job Opening (ಕಾರ್ಮಿಕರನ್ನು ಹುಡುಕಿ)</option>
+            </select>
+          </div>
+          <div class="form-group" id="match-target-group">
+            <label id="lbl-match-target">Select Worker:</label>
+            <select id="match-target-select" class="form-control">
+              <!-- Populated via JS -->
+            </select>
+          </div>
+        </div>
+        <div style="display:flex; justify-content:flex-end;">
+          <button class="btn btn-primary" onclick="runMatching()">⚡ Run Smart Match</button>
+        </div>
+      </div>
+      <div id="match-results-container">
+        <!-- Match results card grid -->
+      </div>
+    </div>
+
+    <!-- 4. FAIR WAGE PREDICTOR TAB -->
+    <div id="tab-wage" class="tab-pane">
+      <div class="form-card">
+        <h2 style="font-size:1.3rem; margin-bottom:0.5rem;">⚖️ Fair Wage Prediction Engine</h2>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.5rem;">
+          Estimates fair market baseline and recommended daily wages based on Indian city economic tiers (Tier-1, 2, 3), experience compounding (+3%/yr), and tool ownership to protect workers from wage exploitation.
+        </p>
+        <form id="wage-prediction-form" onsubmit="handleWagePrediction(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Trade / Skill (ವೃತ್ತಿ / व्यवसाय):</label>
+              <select id="wage-trade" class="form-control" required>
+                <option value="Electrician">Electrician (ಎಲೆಕ್ಟ್ರಿಷಿಯನ್ / इलेक्ट्रीशियन)</option>
+                <option value="Plumber">Plumber (ಪ್ಲಂಬರ್ / प्लंबर)</option>
+                <option value="Mason">Mason / Mestri (ಮೇಸ್ತ್ರಿ / राजमिस्त्री)</option>
+                <option value="Carpenter">Carpenter (ಬಡಗಿ / बढ़ई)</option>
+                <option value="Painter">Painter (ಪೇಂಟರ್ / पेंटर)</option>
+                <option value="Welder">Welder (ವೆಲ್ಡರ್ / वेल्डर)</option>
+                <option value="Tile Mason">Tile / Flooring Mason (ಟೈಲ್ಸ್ ಮೇಸ್ತ್ರಿ)</option>
+                <option value="AC Technician">AC Technician (ಎಸಿ ಮೆಕ್ಯಾನಿಕ್)</option>
+                <option value="Helper">General Helper / Labour (ಕೂಲಿ ಕಾರ್ಮಿಕ / मजदूर)</option>
+                <option value="Loader">Loading & Unloading (ಹಮಾಲಿ)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>City (ನಗರ / शहर):</label>
+              <select id="wage-city" class="form-control" required>
+                <option value="Bengaluru">Bengaluru (Tier-1 / ಕರ್ನಾಟಕ)</option>
+                <option value="Mysuru">Mysuru (Tier-2 / ಕರ್ನಾಟಕ)</option>
+                <option value="Hubballi">Hubballi (Tier-2 / ಕರ್ನಾಟಕ)</option>
+                <option value="Belagavi">Belagavi (Tier-2 / ಕರ್ನಾಟಕ)</option>
+                <option value="Davanagere">Davanagere (Tier-3 / ಕರ್ನಾಟಕ)</option>
+                <option value="Delhi">Delhi (Tier-1)</option>
+                <option value="Lucknow">Lucknow (Tier-2)</option>
+                <option value="Patna">Patna (Tier-2)</option>
+                <option value="Jaipur">Jaipur (Tier-2)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Years of Experience (ಅನುಭವ):</label>
+              <input type="number" id="wage-exp" class="form-control" min="0" max="30" value="4" required>
+            </div>
+            <div class="form-group">
+              <label>Hours per Workday:</label>
+              <input type="number" id="wage-hours" class="form-control" min="1" max="14" value="8" required>
+            </div>
+          </div>
+          <div class="form-row" style="margin-bottom:1.5rem;">
+            <div class="form-group" style="display:flex; align-items:center; gap:0.5rem; margin-top:1.5rem;">
+              <input type="checkbox" id="wage-tools" checked style="width:18px; height:18px;">
+              <label for="wage-tools" style="margin-bottom:0;">Worker brings own power tools (+₹150/day)</label>
+            </div>
+            <div class="form-group" style="display:flex; align-items:center; gap:0.5rem; margin-top:1.5rem;">
+              <input type="checkbox" id="wage-urgent" style="width:18px; height:18px;">
+              <label for="wage-urgent" style="margin-bottom:0;">Emergency / Immediate Request (+20%)</label>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">Calculate Fair Wage (ನ್ಯಾಯಯುತ ದರ ಲೆಕ್ಕಹಾಕಿ)</button>
+        </form>
+
+        <div id="wage-result-card" style="display:none; margin-top:1.5rem; padding:1.25rem; border-radius:10px; background:#f0fdf4; border:1px solid #bbf7d0;">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. POST WORK (EMPLOYER) TAB -->
+    <div id="tab-post-job" class="tab-pane">
+      <div class="form-card">
+        <h2 style="font-size:1.3rem; margin-bottom:0.5rem;">➕ Post Work / Requirement (ಉದ್ಯೋಗ ಪ್ರಕಟಿಸಿ)</h2>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.5rem;">
+          Connect instantly with skilled workers nearby. Fair wages ensure faster acceptance!
+        </p>
+        <form id="post-job-form" onsubmit="handlePostJob(event)">
+          <div class="form-group">
+            <label>Work Title (ಕೆಲಸದ ಶೀರ್ಷಿಕೆ):</label>
+            <input type="text" id="job-title" class="form-control" placeholder="e.g. Bathroom plumbing & new pipe fitting" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Trade Required (ಅಗತ್ಯವಿರುವ ವೃತ್ತಿ):</label>
+              <select id="job-trade" class="form-control" required>
+                <option value="Electrician">Electrician</option>
+                <option value="Plumber">Plumber</option>
+                <option value="Mason">Mason</option>
+                <option value="Carpenter">Carpenter</option>
+                <option value="Painter">Painter</option>
+                <option value="Helper">Helper / Labour</option>
+                <option value="Welder">Welder</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Urgency Level:</label>
+              <select id="job-urgency" class="form-control">
+                <option value="normal">Normal (ಸಾಮಾನ್ಯ)</option>
+                <option value="urgent">Urgent / Immediate (ತುರ್ತು ಕೆಲಸ)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>City (ನಗರ):</label>
+              <select id="job-city" class="form-control" required>
+                <option value="Bengaluru">Bengaluru</option>
+                <option value="Mysuru">Mysuru</option>
+                <option value="Hubballi">Hubballi</option>
+                <option value="Belagavi">Belagavi</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Lucknow">Lucknow</option>
+                <option value="Patna">Patna</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Locality / Area (ಬಡಾವಣೆ/ಪ್ರದೇಶ):</label>
+              <input type="text" id="job-area" class="form-control" placeholder="e.g. Rajajinagar, Indiranagar" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Daily Wage Offered in ₹ (ನೀಡುವ ದಿನಗೂಲಿ):</label>
+              <input type="number" id="job-wage" class="form-control" placeholder="e.g. 900" min="400" required>
+            </div>
+            <div class="form-group">
+              <label>Work Duration (Days):</label>
+              <input type="number" id="job-duration" class="form-control" value="1" min="1" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Employer / Company Name:</label>
+              <input type="text" id="job-employer-name" class="form-control" placeholder="Your name or business name" required>
+            </div>
+            <div class="form-group">
+              <label>Employer Phone Number (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ):</label>
+              <input type="tel" id="job-employer-phone" class="form-control" placeholder="10-digit mobile number" pattern="[0-9]{10}" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Work Description & Requirements:</label>
+            <textarea id="job-desc" class="form-control" rows="3" placeholder="Explain the exact work requirements, materials available, etc."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">Publish Job Posting (ಕೆಲಸ ಪ್ರಕಟಿಸಿ)</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 6. WORKER REGISTRATION TAB -->
+    <div id="tab-register-worker" class="tab-pane">
+      <div class="form-card">
+        <h2 style="font-size:1.3rem; margin-bottom:0.5rem;">👤 Worker Registration (ಕಾರ್ಮಿಕರ ನೋಂದಣಿ)</h2>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:1.5rem;">
+          Create your work profile to start receiving direct job inquiries from employers nearby!
+        </p>
+        <form id="worker-register-form" onsubmit="handleWorkerRegistration(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name (ಹೆಸರು / पूरा नाम):</label>
+              <input type="text" id="worker-name" class="form-control" placeholder="e.g. Basavaraj K" required>
+            </div>
+            <div class="form-group">
+              <label>Mobile Number (ಮೊಬೈಲ್ ಸಂಖ್ಯೆ):</label>
+              <input type="tel" id="worker-phone" class="form-control" placeholder="10-digit mobile" pattern="[0-9]{10}" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Primary Trade (ಮುಖ್ಯ ಕೌಶಲ್ಯ/ವೃತ್ತಿ):</label>
+              <select id="worker-trade" class="form-control" required>
+                <option value="Electrician">Electrician (ಎಲೆಕ್ಟ್ರಿಷಿಯನ್)</option>
+                <option value="Plumber">Plumber (ಪ್ಲಂಬರ್)</option>
+                <option value="Mason">Mason / Mestri (ಮೇಸ್ತ್ರಿ)</option>
+                <option value="Carpenter">Carpenter (ಬಡಗಿ)</option>
+                <option value="Painter">Painter (ಪೇಂಟರ್)</option>
+                <option value="Helper">Helper / Labour (ಕೂಲಿ ಕಾರ್ಮಿಕ)</option>
+                <option value="Welder">Welder (ವೆಲ್ಡರ್)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Years of Experience (ಅನುಭವ):</label>
+              <input type="number" id="worker-exp" class="form-control" value="5" min="0" max="40" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>City (ನಗರ):</label>
+              <select id="worker-city" class="form-control" required>
+                <option value="Bengaluru">Bengaluru</option>
+                <option value="Mysuru">Mysuru</option>
+                <option value="Hubballi">Hubballi</option>
+                <option value="Belagavi">Belagavi</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Lucknow">Lucknow</option>
+                <option value="Patna">Patna</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Locality / Area (ಪ್ರದೇಶ):</label>
+              <input type="text" id="worker-area" class="form-control" placeholder="e.g. Malleshwaram" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Expected Daily Wage Rate ₹ (ನಿರೀಕ್ಷಿತ ದಿನಗೂಲಿ):</label>
+              <input type="number" id="worker-rate" class="form-control" placeholder="e.g. 850" min="400" required>
+            </div>
+            <div class="form-group">
+              <label>Preferred Language (ಭಾಷೆ):</label>
+              <select id="worker-lang" class="form-control">
+                <option value="kannada">ಕನ್ನಡ (Kannada)</option>
+                <option value="hindi">हिन्दी (Hindi)</option>
+                <option value="english">English</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Specific Skills / Specialization (ಹೆಚ್ಚುವರಿ ಕೌಶಲ್ಯಗಳು):</label>
+            <input type="text" id="worker-skills" class="form-control" placeholder="e.g. Inverter wiring, MCB troubleshooting, 3-Phase">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%;">Create Worker Profile (ಪ್ರೊಫೈಲ್ ರಚಿಸಿ)</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 7. FEATURE PHONE SIMULATOR (USSD & IVR) TAB -->
+    <div id="tab-phone-simulator" class="tab-pane">
+      <div style="text-align:center; margin-bottom:1.5rem;">
+        <h2 style="font-size:1.4rem;">📱 Virtual Feature Phone Simulator (USSD & IVR)</h2>
+        <p style="color:var(--text-muted); font-size:0.95rem; max-width:700px; margin:0.3rem auto;">
+          Experience how blue-collar workers on basic non-smartphones access the platform in <strong>Kannada (ಕನ್ನಡ)</strong> and <strong>Hindi (हिन्दी)</strong> via USSD codes and Interactive Voice Response (IVR)!
+        </p>
+      </div>
+
+      <div class="phone-simulator-container">
+        <!-- Feature Phone Device -->
+        <div class="feature-phone">
+          <div class="phone-speaker"></div>
+
+          <!-- Phone Screen -->
+          <div class="phone-screen" id="phone-screen">
+            <div class="screen-header">
+              <span id="screen-network">📶 Airtel 4G</span>
+              <span id="screen-clock">18:30</span>
+              <span>🔋 94%</span>
+            </div>
+            <div class="screen-body" id="screen-text">
+KaayakaSetu Gateway
+Mode: USSD (*345#)
+Dial *345# and press CALL to start in Kannada or Hindi.
+            </div>
+            <div class="screen-input-bar">
+              <span style="margin-right:4px;">&gt;</span>
+              <input type="text" id="phone-dial-input" value="*345#" style="background:transparent; border:none; color:#38bdf8; font-family:monospace; font-size:0.9rem; width:100%; outline:none;">
+            </div>
+          </div>
+
+          <!-- Call / End Action Buttons -->
+          <div class="call-control-keys">
+            <button class="key-call" onclick="handlePhoneCallBtn()">📞 CALL / SEND</button>
+            <button class="key-end" onclick="handlePhoneEndBtn()">🔴 END</button>
+          </div>
+
+          <!-- Numeric DTMF Keypad -->
+          <div class="phone-keypad">
+            <button class="keypad-btn" onclick="pressKey('1')">1 <span class="letters">. , !</span></button>
+            <button class="keypad-btn" onclick="pressKey('2')">2 <span class="letters">A B C</span></button>
+            <button class="keypad-btn" onclick="pressKey('3')">3 <span class="letters">D E F</span></button>
+            <button class="keypad-btn" onclick="pressKey('4')">4 <span class="letters">G H I</span></button>
+            <button class="keypad-btn" onclick="pressKey('5')">5 <span class="letters">J K L</span></button>
+            <button class="keypad-btn" onclick="pressKey('6')">6 <span class="letters">M N O</span></button>
+            <button class="keypad-btn" onclick="pressKey('7')">7 <span class="letters">P Q R S</span></button>
+            <button class="keypad-btn" onclick="pressKey('8')">8 <span class="letters">T U V</span></button>
+            <button class="keypad-btn" onclick="pressKey('9')">9 <span class="letters">W X Y Z</span></button>
+            <button class="keypad-btn" onclick="pressKey('*')">*</button>
+            <button class="keypad-btn" onclick="pressKey('0')">0 <span class="letters">+</span></button>
+            <button class="keypad-btn" onclick="pressKey('#')">#</button>
+          </div>
+        </div>
+
+        <!-- Phone Guide & Live Audio Controls Panel -->
+        <div class="phone-guide-panel">
+          <h3 style="margin-bottom:0.75rem; color:var(--primary);">Telecom Gateway Control</h3>
+          <div class="form-group">
+            <label>Telecom Mode:</label>
+            <select id="telecom-mode" class="form-control" onchange="switchTelecomMode()">
+              <option value="ussd">USSD Service (*345# Flash Session)</option>
+              <option value="ivr">IVR Voice Call Service (1800-KAYAKA)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Caller Phone Number:</label>
+            <input type="text" id="phone-caller-id" class="form-control" value="9845099112">
+          </div>
+
+          <div id="ivr-audio-controls" style="display:none; background:#ecfdf5; padding:1rem; border-radius:8px; border:1px solid #a7f3d0; margin-bottom:1rem;">
+            <div style="font-weight:600; color:#065f46; margin-bottom:0.3rem;">🔊 Voice Speech Synthesizer</div>
+            <p style="font-size:0.85rem; color:#047857; margin-bottom:0.6rem;">
+              When in IVR mode, voice prompts in Kannada and Hindi are spoken aloud using browser speech synthesis!
+            </p>
+            <button class="btn btn-success" style="font-size:0.85rem;" onclick="speakCurrentPrompt()">
+              🔊 Repeat Voice Prompt
+            </button>
+          </div>
+
+          <div style="background:#f8fafc; border:1px solid var(--border-color); border-radius:8px; padding:1rem; font-size:0.85rem;">
+            <div style="font-weight:600; margin-bottom:0.4rem;">Try these test scenarios:</div>
+            <ul style="padding-left:1.2rem; line-height:1.6; color:#475569;">
+              <li><strong>Kannada Worker Profile Registration:</strong> Dial <code>*345#</code> &rarr; Press <code>1</code> (ಕನ್ನಡ) &rarr; Press <code>1</code> (ಕಾರ್ಮಿಕ ಪ್ರೊಫೈಲ್ ನೋಂದಣಿ) &rarr; Follow prompts for skill, experience, wage, and city.</li>
+              <li><strong>Hindi Matching Jobs Search:</strong> Dial <code>*345#</code> &rarr; Press <code>2</code> (हिन्दी) &rarr; Press <code>2</code> (नजदीकी काम खोजें) &rarr; Select trade to see matching open jobs with phone numbers!</li>
+              <li><strong>Check Fair Daily Wage:</strong> Select option <code>3</code> to get instant wage benchmarks in your city.</li>
+              <li><strong>Voice Call (IVR):</strong> Switch mode to IVR Voice Call, click 📞 CALL, and listen to the Kannada/Hindi voice agent!</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Contact Modal -->
+  <div id="contact-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title">Contact Worker / Employer</h3>
+        <button onclick="closeContactModal()" style="background:none; border:none; font-size:1.4rem; cursor:pointer;">&times;</button>
+      </div>
+      <div id="modal-body">
+        <div id="modal-target-details" style="background:#f1f5f9; padding:0.8rem; border-radius:8px; margin-bottom:1rem; font-size:0.9rem;">
+          <!-- Dynamically filled -->
+        </div>
+        <div class="form-group">
+          <label>Your Message (ಸಂದೇಶ):</label>
+          <textarea id="modal-message" class="form-control" rows="3" placeholder="Explain your work requirement or availability..."></textarea>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+          <button class="btn btn-secondary" onclick="closeContactModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="submitContactRequest()">Send Inquiry & Dispatch SMS</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login / Register Modal -->
+  <div id="auth-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="auth-title">Login</h3>
+        <button onclick="closeAuthModal()" style="background:none; border:none; font-size:1.4rem; cursor:pointer;">&times;</button>
+      </div>
+      <form onsubmit="handleAuthSubmit(event)">
+        <div id="auth-register-fields" style="display:none;">
+          <div class="form-group">
+            <label>Full Name / Business Name:</label>
+            <input type="text" id="auth-name" class="form-control" maxlength="255">
+          </div>
+          <div class="form-group">
+            <label>I am a:</label>
+            <select id="auth-role" class="form-control">
+              <option value="worker">Worker (looking for work)</option>
+              <option value="employer">Employer (hiring)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Mobile Number:</label>
+          <input type="tel" id="auth-phone" class="form-control" placeholder="10-digit mobile" pattern="[0-9]{10}" required>
+        </div>
+        <div class="form-group">
+          <label>Password (min 8 characters):</label>
+          <input type="password" id="auth-password" class="form-control" minlength="8" maxlength="72" required autocomplete="current-password">
+        </div>
+        <div id="auth-error" class="auth-error"></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:0.5rem;">
+          <span id="auth-switch" style="font-size:0.85rem;"></span>
+          <button type="submit" id="auth-submit" class="btn btn-primary">Login</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
